@@ -1,118 +1,117 @@
-// Global configuration
-window.chatWidgetConfig = {
-    serverUrl: 'https://eid-gpt-server.azurewebsites.net/ChatHub/',
-    moduleId: 'asst_egfTiiQbNOpLjfVPfjsgvD9i',
-};
-
-let connection = null;
+let connection = null
 const eventHandlers = {
     onReceiveMessage: null,
-    onCompleteMessage: null
-};
+    onCompleteMessage: null,
+}
 
 // Generate Client ID
 function generateClientId() {
-    let clientId = localStorage.getItem('clientId');
+    let clientId = localStorage.getItem('clientId')
     if (!clientId) {
-        clientId = Math.random().toString(36).substring(2, 15) +
-                  Math.random().toString(36).substring(2, 15);
-        localStorage.setItem('clientId', clientId);
+        clientId =
+            Math.random().toString(36).substring(2, 15) +
+            Math.random().toString(36).substring(2, 15)
+        localStorage.setItem('clientId', clientId)
     }
-    return clientId;
+    return clientId
 }
 
-export const initializeSignalRConnection = async () => {
+export const initializeSignalRConnection = async (config) => {
+    if (!config?.serverUrl) {
+        throw new Error('serverUrl configuration is required')
+    }
+
     try {
         connection = new signalR.HubConnectionBuilder()
-            .withUrl(window.chatWidgetConfig.serverUrl, {
+            .withUrl(config.serverUrl, {
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets,
             })
             .configureLogging(signalR.LogLevel.Information)
             .withAutomaticReconnect()
-            .build();
+            .build()
 
         // Register server-side methods
         connection.on('ReceiveMessage', (message) => {
-            console.log('Message received from AI:', message);
-            eventHandlers.onReceiveMessage?.(message);
-        });
+            console.log('Message received from AI:', message)
+            eventHandlers.onReceiveMessage?.(message)
+        })
 
         connection.on('MessageReceived', (acknowledgment) => {
-            console.log('Message acknowledgment received:', acknowledgment);
-        });
+            console.log('Message acknowledgment received:', acknowledgment)
+        })
 
         connection.onclose(async () => {
-            console.log('SignalR connection closed. Attempting to reconnect.');
-            await startConnection();
-        });
+            console.log('SignalR connection closed. Attempting to reconnect.')
+            await startConnection()
+        })
 
         connection.onreconnecting(() => {
-            console.log('SignalR is attempting to reconnect.');
-        });
+            console.log('SignalR is attempting to reconnect.')
+        })
 
         connection.onreconnected(() => {
-            console.log('SignalR reconnected successfully.');
-        });
+            console.log('SignalR reconnected successfully.')
+        })
 
         const startConnection = async () => {
             try {
-                await connection.start();
-                console.log('SignalR connected');
+                await connection.start()
+                console.log('SignalR connected')
             } catch (error) {
-                console.error('SignalR connection error:', error);
-                setTimeout(() => startConnection(), 5000); // Retry after delay
+                console.error('SignalR connection error:', error)
+                setTimeout(() => startConnection(), 5000) // Retry after delay
             }
-        };
+        }
 
-        await startConnection();
+        await startConnection()
     } catch (error) {
-        console.error('SignalR Connection Error:', error);
-        throw error;
+        console.error('SignalR Connection Error:', error)
+        throw error
     }
-};
+}
 
 export const sendMessageToApi = async (message, languageCode = 'en') => {
     if (connection?.state === 'Connected') {
         try {
-            const clientId = generateClientId();
-            const moduleId = window.chatWidgetConfig.moduleId;
+            const clientId = generateClientId()
+            const moduleId = window.chatWidgetConfig.moduleId
 
             await connection.invoke(
                 'SendMessageToServer',
                 clientId,
                 message + ' Language: ' + languageCode,
-                moduleId
-            );
-            console.log('Message sent to AI:', message);
+                moduleId,
+            )
+            console.log('Message sent to AI:', message)
         } catch (error) {
-            console.error('Error sending message:', error);
-            throw error;
+            console.error('Error sending message:', error)
+            throw error
         }
     } else {
-        console.error('No SignalR connection established.');
-        throw new Error('No SignalR connection established.');
+        console.error('No SignalR connection established.')
+        throw new Error('No SignalR connection established.')
     }
-};
+}
 
 export const onReceiveMessage = (callback) => {
-    eventHandlers.onReceiveMessage = callback;
-};
+    eventHandlers.onReceiveMessage = callback
+}
 
 export const onCompleteMessage = (callback) => {
-    eventHandlers.onCompleteMessage = callback;
-};
+    eventHandlers.onCompleteMessage = callback
+}
 
 export const disconnectSignalR = async () => {
     if (connection) {
         try {
-            await connection.stop();
-            connection = null;
-            eventHandlers.onReceiveMessage = null;
-            eventHandlers.onCompleteMessage = null;
+            await connection.stop()
+            connection = null
+            eventHandlers.onReceiveMessage = null
+            eventHandlers.onCompleteMessage = null
         } catch (error) {
-            console.error('Error stopping SignalR connection:', error);
-            throw error;
+            console.error('Error stopping SignalR connection:', error)
+            throw error
         }
     }
-};
+}

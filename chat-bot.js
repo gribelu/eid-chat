@@ -11,9 +11,19 @@ import {
 } from './services/api-service.js'
 
 class ChatBot extends HTMLElement {
+    static get observedAttributes() {
+        return ['server-url', 'module-id']
+    }
+
     constructor() {
         super()
         this.attachShadow({ mode: 'open' })
+
+        // Initialize config
+        this.config = {
+            serverUrl: this.getAttribute('server-url'),
+            moduleId: this.getAttribute('module-id'),
+        }
 
         // Load SignalR script
         this.loadSignalR().then(() => {
@@ -99,6 +109,19 @@ class ChatBot extends HTMLElement {
         this.handleToggleHistory = this.handleToggleHistory.bind(this)
     }
 
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue === newValue) return
+
+        switch (name) {
+            case 'server-url':
+                this.config.serverUrl = newValue
+                break
+            case 'module-id':
+                this.config.moduleId = newValue
+                break
+        }
+    }
+
     async loadSignalR() {
         if (window.signalR) return Promise.resolve()
 
@@ -149,12 +172,28 @@ class ChatBot extends HTMLElement {
 
     async initializeConnection() {
         try {
-            await initializeSignalRConnection()
+            if (!this.config.serverUrl || !this.config.moduleId) {
+                throw new Error(
+                    'Missing required configuration: server-url and module-id attributes are required',
+                )
+            }
+
+            await initializeSignalRConnection(this.config)
             this.state.isConnected = true
             this.state.connectionStatus = 'connected'
         } catch (error) {
             console.error('Connection failed:', error)
             this.state.connectionStatus = 'disconnected'
+
+            // Show error message to user
+            const errorMessage = {
+                id: Date.now(),
+                text: 'Failed to initialize chat. Please check configuration and try again.',
+                sender: 'system',
+                timestamp: new Date(),
+            }
+            this.state.messages.push(errorMessage)
+            this.updateUI()
         }
     }
 
@@ -280,7 +319,11 @@ class ChatBot extends HTMLElement {
         this.updateUI()
 
         try {
-            await sendMessageToApi(`Textbox Query: ${rawText}`, 'en')
+            await sendMessageToApi(
+                `Textbox Query: ${rawText}`,
+                'en',
+                this.config.moduleId,
+            )
         } catch (error) {
             console.error('Failed to send message:', error)
             this.state.messages = this.state.messages.filter(
