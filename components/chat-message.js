@@ -132,8 +132,8 @@ class ChatMessage extends HTMLElement {
                 <img class="avatar"
                      src="${
                          isUser
-                             ? '/chatbot/img/avatar.svg'
-                             : '/chatbot/img/avatar.svg'
+                             ? 'https://gribelu.github.io/eid-chat/img/avatar.svg'
+                             : 'https://gribelu.github.io/eid-chat/img/avatar.svg'
                      }"
                      alt="${isUser ? 'User' : 'AI'} avatar">
                 <div class="message-bubble ${
