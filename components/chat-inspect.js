@@ -41,6 +41,9 @@ class ChatInspect extends HTMLElement {
                 position: element.style.position,
                 pointerEvents: element.style.pointerEvents,
                 cursor: element.style.cursor,
+                outline: element.style.outline,
+                outlineOffset: element.style.outlineOffset,
+                boxShadow: element.style.boxShadow,
             })
 
             // Set inspection styles
@@ -51,19 +54,20 @@ class ChatInspect extends HTMLElement {
                 pointerEvents: 'auto',
                 cursor: 'pointer',
                 transition: 'box-shadow 0.15s ease',
-                boxShadow:
-                    '0 0 2px 4px rgba(255, 0, 0, 0.3), 0 0 2px 6px rgba(48, 127, 193, 0.3)',
+                // boxShadow:
+                //     ' inset 0 0 2px 4px rgba(255, 0, 0, 0.3), inset 0 0 2px 6px rgba(48, 127, 193, 0.3)',
+                outline: '2px dashed rgba(255, 0, 0, 0.5)',
+                outlineOffset: '-2px',
             })
 
             // Create event handlers
             const handleMouseEnter = () => {
-                element.style.boxShadow =
-                    '0 0 2px 4px #307fc1, 0 0 2px 6px rgba(48, 127, 193, 0.3)'
+                element.style.boxShadow = '0 0 2px 4px rgba(255, 0, 0, 0.5)'
             }
 
             const handleMouseLeave = () => {
-                element.style.boxShadow =
-                    '0 0 2px 4px rgba(255, 0, 0, 0.3), 0 0 2px 6px rgba(48, 127, 193, 0.3)'
+                element.style.boxShadow = ''
+                element.style.outline = '2px dashed rgba(255, 0, 0, 0.5)'
             }
 
             const handleClick = (event) => {
@@ -162,12 +166,23 @@ class ChatInspect extends HTMLElement {
 
         // Restore original styles
         this.originalStyles.forEach(
-            ({ element, zIndex, position, pointerEvents, cursor }) => {
+            ({
+                element,
+                zIndex,
+                position,
+                pointerEvents,
+                cursor,
+                boxShadow,
+                outline,
+                outlineOffset,
+            }) => {
                 element.style.zIndex = zIndex
                 element.style.position = position
                 element.style.pointerEvents = pointerEvents
                 element.style.cursor = cursor
-                element.style.boxShadow = ''
+                element.style.boxShadow = boxShadow
+                element.style.outline = outline
+                element.style.outlineOffset = outlineOffset
             },
         )
 
