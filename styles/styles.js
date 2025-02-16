@@ -207,6 +207,6 @@ export const styles = `
         bottom: -0.1rem;
         width: 100%;
     }
-`
+`;
 
-export default styles
+export default styles;

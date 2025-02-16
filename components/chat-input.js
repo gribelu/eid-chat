@@ -1,9 +1,9 @@
 class ChatInput extends HTMLElement {
-    constructor() {
-        super()
-        this.attachShadow({ mode: 'open' })
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
 
-        const styles = `
+    const styles = `
             :host {
                 display: block;
                 font-size: inherit;
@@ -52,9 +52,9 @@ class ChatInput extends HTMLElement {
                 color: #fff;
                 transform: rotate(-35deg) translateX(0.15rem);
             }
-        `
+        `;
 
-        const template = `
+    const template = `
             <div class="input-container">
                 <textarea
                     class="text-field"
@@ -68,67 +68,67 @@ class ChatInput extends HTMLElement {
 
                 </button>
             </div>
-        `
+        `;
 
-        this.shadowRoot.innerHTML = `
+    this.shadowRoot.innerHTML = `
             <style>${styles}</style>
             ${template}
-        `
+        `;
 
-        this.textField = this.shadowRoot.querySelector('.text-field')
-        this.sendButton = this.shadowRoot.querySelector('.send-button')
+    this.textField = this.shadowRoot.querySelector(".text-field");
+    this.sendButton = this.shadowRoot.querySelector(".send-button");
 
-        this.handleKeyPress = this.handleKeyPress.bind(this)
-        this.handleSend = this.handleSend.bind(this)
-        this.adjustTextAreaHeight = this.adjustTextAreaHeight.bind(this)
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.handleSend = this.handleSend.bind(this);
+    this.adjustTextAreaHeight = this.adjustTextAreaHeight.bind(this);
+  }
+
+  connectedCallback() {
+    this.textField.addEventListener("keypress", this.handleKeyPress);
+    this.textField.addEventListener("input", this.adjustTextAreaHeight);
+    this.sendButton.addEventListener("click", this.handleSend);
+  }
+
+  disconnectedCallback() {
+    this.textField.removeEventListener("keypress", this.handleKeyPress);
+    this.textField.removeEventListener("input", this.adjustTextAreaHeight);
+    this.sendButton.removeEventListener("click", this.handleSend);
+  }
+
+  adjustTextAreaHeight() {
+    const textarea = this.textField;
+    textarea.style.height = "auto";
+    textarea.style.height = Math.min(textarea.scrollHeight, 72) + "px"; // 72px = 4 rows max
+  }
+
+  handleKeyPress(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (this.textField.value.trim()) {
+        this.handleSend();
+      }
     }
+  }
 
-    connectedCallback() {
-        this.textField.addEventListener('keypress', this.handleKeyPress)
-        this.textField.addEventListener('input', this.adjustTextAreaHeight)
-        this.sendButton.addEventListener('click', this.handleSend)
+  handleSend() {
+    const text = this.textField.value.trim();
+    if (text) {
+      const formattedText = text.replace(/\n/g, "<br>");
+
+      // Dispatch custom event with message data
+      const event = new CustomEvent("message-sent", {
+        detail: {
+          formattedText,
+          rawText: text,
+        },
+      });
+      this.dispatchEvent(event);
+
+      // Clear input
+      this.textField.value = "";
+      this.adjustTextAreaHeight();
     }
-
-    disconnectedCallback() {
-        this.textField.removeEventListener('keypress', this.handleKeyPress)
-        this.textField.removeEventListener('input', this.adjustTextAreaHeight)
-        this.sendButton.removeEventListener('click', this.handleSend)
-    }
-
-    adjustTextAreaHeight() {
-        const textarea = this.textField
-        textarea.style.height = 'auto'
-        textarea.style.height = Math.min(textarea.scrollHeight, 72) + 'px' // 72px = 4 rows max
-    }
-
-    handleKeyPress(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            if (this.textField.value.trim()) {
-                this.handleSend()
-            }
-        }
-    }
-
-    handleSend() {
-        const text = this.textField.value.trim()
-        if (text) {
-            const formattedText = text.replace(/\n/g, '<br>')
-
-            // Dispatch custom event with message data
-            const event = new CustomEvent('message-sent', {
-                detail: {
-                    formattedText,
-                    rawText: text,
-                },
-            })
-            this.dispatchEvent(event)
-
-            // Clear input
-            this.textField.value = ''
-            this.adjustTextAreaHeight()
-        }
-    }
+  }
 }
 
-customElements.define('chat-input', ChatInput)
+customElements.define("chat-input", ChatInput);
