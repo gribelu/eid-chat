@@ -1,35 +1,41 @@
+/**
+ * ChatHistory Custom Element
+ *
+ * Displays a list of previous chat conversations.
+ * List items trigger a "history-selected" event with the corresponding messages when clicked.
+ */
 class ChatHistory extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
 
-    // Initialize state
-    this.history = [
-      {
-        messages: [
-          {
-            id: 1,
-            text: "Previous conversation 1",
-            sender: "ai",
-            timestamp: new Date(),
-          },
-        ],
-        date: "2023-10-01",
-      },
-      {
-        messages: [
-          {
-            id: 2,
-            text: "Previous conversation 2",
-            sender: "ai",
-            timestamp: new Date(),
-          },
-        ],
-        date: "2023-09-30",
-      },
-    ];
+        // Initialize history state with sample data
+        this.history = [
+            {
+                messages: [
+                    {
+                        id: 1,
+                        text: 'Previous conversation 1',
+                        sender: 'ai',
+                        timestamp: new Date(),
+                    },
+                ],
+                date: '2023-10-01',
+            },
+            {
+                messages: [
+                    {
+                        id: 2,
+                        text: 'Previous conversation 2',
+                        sender: 'ai',
+                        timestamp: new Date(),
+                    },
+                ],
+                date: '2023-09-30',
+            },
+        ];
 
-    const styles = `
+        const styles = `
             :host {
                 display: block;
             }
@@ -116,7 +122,7 @@ class ChatHistory extends HTMLElement {
             }
         `;
 
-    this.shadowRoot.innerHTML = `
+        this.shadowRoot.innerHTML = `
             <style>${styles}</style>
             <div class="history-container">
                 <div class="header">
@@ -140,56 +146,67 @@ class ChatHistory extends HTMLElement {
                 </div>
             </div>
         `;
-  }
+    }
 
-  renderHistoryItems() {
-    return this.history
-      .map(
-        (item, index) => `
+    /**
+     * Renders the history items as list items.
+     *
+     * @returns {string} HTML string of history items.
+     */
+    renderHistoryItems() {
+        return this.history
+            .map(
+                (item, index) => `
             <div class="list-item" data-index="${index}">
                 <div class="list-item-text">${item.messages[0].text}</div>
                 <div class="list-item-date">${item.date}</div>
             </div>
-        `
-      )
-      .join("");
-  }
+        `,
+            )
+            .join('');
+    }
 
-  connectedCallback() {
-    this.setupEventListeners();
-  }
+    connectedCallback() {
+        this.setupEventListeners();
+    }
 
-  setupEventListeners() {
-    const listItems = this.shadowRoot.querySelectorAll(".list-item");
-    const loadMoreBtn = this.shadowRoot.querySelector(".load-more");
+    /**
+     * Sets up event listeners for history item selection and the load more button.
+     */
+    setupEventListeners() {
+        const listItems = this.shadowRoot.querySelectorAll('.list-item');
+        const loadMoreBtn = this.shadowRoot.querySelector('.load-more');
 
-    listItems.forEach((item) => {
-      item.addEventListener("click", () => {
-        const index = parseInt(item.dataset.index);
-        const selectedHistory = this.history[index];
+        listItems.forEach((item) => {
+            item.addEventListener('click', () => {
+                const index = parseInt(item.dataset.index);
+                const selectedHistory = this.history[index];
 
-        // Dispatch custom event with selected messages
-        this.dispatchEvent(
-          new CustomEvent("history-selected", {
-            detail: {
-              messages: selectedHistory.messages,
-            },
-            bubbles: true,
-            composed: true,
-          })
-        );
-      });
-    });
+                // Dispatch custom event with selected messages
+                this.dispatchEvent(
+                    new CustomEvent('history-selected', {
+                        detail: {
+                            messages: selectedHistory.messages,
+                        },
+                        bubbles: true,
+                        composed: true,
+                    }),
+                );
+            });
+        });
 
-    loadMoreBtn.addEventListener("click", () => {
-      this.handleLoadMore();
-    });
-  }
+        loadMoreBtn.addEventListener('click', () => {
+            this.handleLoadMore();
+        });
+    }
 
-  handleLoadMore() {
-    // Implement load more functionality
-    console.log("Load more clicked");
-  }
+    /**
+     * Placeholder for potential load more functionality.
+     */
+    handleLoadMore() {
+        // Implement load more functionality
+        console.log('Load more clicked');
+    }
 }
 
-customElements.define("chat-history", ChatHistory);
+customElements.define('chat-history', ChatHistory);

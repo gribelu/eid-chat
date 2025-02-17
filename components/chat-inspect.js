@@ -1,8 +1,17 @@
+/**
+ * ChatInspect Custom Element
+ *
+ * Allows developers and users to select an element on the page to extract context.
+ * It highlights inspectable elements and dispatches the extracted text via events.
+ */
 class ChatInspect extends HTMLElement {
     constructor() {
         super();
+        // Overlay for UI blocking during inspection
         this.overlay = null;
+        // Original styles for elements to be restored
         this.originalStyles = [];
+        // Keep track of event listeners for cleanup
         this.eventListeners = [];
     }
 
@@ -14,6 +23,10 @@ class ChatInspect extends HTMLElement {
         this.cleanup();
     }
 
+    /**
+     * Activates inspect mode: sets up an overlay and applies highlight styles,
+     * then attaches event listeners for element selection.
+     */
     setupInspectMode() {
         // Create dark overlay
         this.overlay = document.createElement('div');
@@ -151,6 +164,16 @@ class ChatInspect extends HTMLElement {
         });
     }
 
+    /**
+     * Extracts text from an element based on the specified depth.
+     * - If depth is '0' or unspecified, only the element's own text nodes are used.
+     * - If numeric and > 0, collects text from child levels up to that depth.
+     * - If 'all', collects text from all descendants.
+     *
+     * @param {HTMLElement} el - The element from which to extract text.
+     * @param {string} depth - The depth level ('0', numeric string, or 'all').
+     * @returns {string} The extracted text.
+     */
     getTextFromElement(el, depth) {
         if (!depth || depth === '0') {
             let text = '';
@@ -173,6 +196,13 @@ class ChatInspect extends HTMLElement {
         return (el.textContent || '').trim();
     }
 
+    /**
+     * Recursively collects text from a node and its children up to a defined depth.
+     *
+     * @param {Node} node - The DOM node.
+     * @param {number} depth - The depth to traverse.
+     * @returns {string} The concatenated text.
+     */
     collectTextWithDepth(node, depth) {
         if (depth < 0) return '';
         let text =
@@ -183,6 +213,9 @@ class ChatInspect extends HTMLElement {
         return text.replace(/\s+/g, ' ');
     }
 
+    /**
+     * Restores original styles and removes event listeners and overlays.
+     */
     cleanup() {
         // Remove overlay
         if (this.overlay?.parentNode) {

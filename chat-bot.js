@@ -1,3 +1,10 @@
+/**
+ * ChatBot Custom Element
+ *
+ * Serves as the main container for the chat interface.
+ * Handles initialization of the SignalR connection, managing chat state, and dispatching messages.
+ * Integrates chat input, message display, history, and inspect features.
+ */
 import { styles } from './styles/styles.js';
 import './components/chat-message.js';
 import './components/chat-input.js';
@@ -19,18 +26,18 @@ class ChatBot extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
 
-        // Initialize config
+        // Initialize configuration from attributes
         this.config = {
             serverUrl: this.getAttribute('server-url'),
             moduleId: this.getAttribute('module-id'),
         };
 
-        // Load SignalR script
+        // Load SignalR script & initialize connection
         this.loadSignalR().then(() => {
             this.initializeConnection();
         });
 
-        // Initialize state
+        // Initialize state for UI management
         this.state = {
             isOpen: false,
             isFullscreen: false,
@@ -41,7 +48,7 @@ class ChatBot extends HTMLElement {
             connectionStatus: 'connecting',
         };
 
-        // Create template
+        // Create template for chat UI
         const template = document.createElement('template');
         template.innerHTML = `
             <style>${styles}</style>
@@ -99,7 +106,7 @@ class ChatBot extends HTMLElement {
 
         this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-        // Bind methods
+        // Bind event handler methods
         this.handleToggleChat = this.handleToggleChat.bind(this);
         this.handleToggleFullscreen = this.handleToggleFullscreen.bind(this);
         this.handleInspect = this.handleInspect.bind(this);
@@ -108,6 +115,9 @@ class ChatBot extends HTMLElement {
         this.handleToggleHistory = this.handleToggleHistory.bind(this);
     }
 
+    /**
+     * Handles attribute changes for configuration attributes.
+     */
     attributeChangedCallback(name, oldValue, newValue) {
         if (oldValue === newValue) return;
 
@@ -121,6 +131,9 @@ class ChatBot extends HTMLElement {
         }
     }
 
+    /**
+     * Dynamically loads the SignalR script if not already loaded.
+     */
     async loadSignalR() {
         if (window.signalR) return Promise.resolve();
 
@@ -144,6 +157,9 @@ class ChatBot extends HTMLElement {
         // Cleanup event listeners
     }
 
+    /**
+     * Sets up event listeners for various UI buttons and input events.
+     */
     setupEventListeners() {
         const toggleBtn = this.shadowRoot.querySelector('.toggle-button');
         toggleBtn.addEventListener('click', this.handleToggleChat);
@@ -169,6 +185,9 @@ class ChatBot extends HTMLElement {
         );
     }
 
+    /**
+     * Initializes the SignalR connection and updates state based on success or failure.
+     */
     async initializeConnection() {
         try {
             if (!this.config.serverUrl || !this.config.moduleId) {
@@ -196,6 +215,9 @@ class ChatBot extends HTMLElement {
         }
     }
 
+    /**
+     * Registers message event handlers for receiving and completing messages.
+     */
     setupMessageHandlers() {
         onReceiveMessage((messageChunk) => {
             const lastMessage =
@@ -248,6 +270,8 @@ class ChatBot extends HTMLElement {
             }
         });
     }
+
+    // UI event handler methods below:
 
     handleToggleChat() {
         this.state.isOpen = !this.state.isOpen;
@@ -330,6 +354,9 @@ class ChatBot extends HTMLElement {
         this.updateUI();
     }
 
+    /**
+     * Handles the sending of messages from the chat input.
+     */
     handleSendMessage = async ({ formattedText, rawText }) => {
         if (!this.state.isConnected) {
             console.error('Not connected to server');
@@ -375,6 +402,9 @@ class ChatBot extends HTMLElement {
         }
     };
 
+    /**
+     * Updates the UI based on current state; rerenders messages and history.
+     */
     updateUI() {
         const container = this.shadowRoot.querySelector('.chat-bot-container');
         container.classList.toggle('open', this.state.isOpen);
@@ -402,6 +432,9 @@ class ChatBot extends HTMLElement {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
+    /**
+     * Renders chat messages in the messages container.
+     */
     renderMessages() {
         const messagesContainerWrapper = this.shadowRoot.querySelector(
             '.messages-container-wrapper',

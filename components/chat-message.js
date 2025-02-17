@@ -1,28 +1,37 @@
+/**
+ * ChatMessage Custom Element
+ *
+ * Renders a chat message bubble with appropriate styles for user or AI messages.
+ * The element listens for changes to the "message" attribute and re-renders its content.
+ */
 class ChatMessage extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  static get observedAttributes() {
-    return ["message"];
-  }
-
-  connectedCallback() {
-    this.render();
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (name === "message" && oldValue !== newValue) {
-      this.render();
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
     }
-  }
 
-  render() {
-    const messageData = JSON.parse(this.getAttribute("message") || "{}");
-    const isUser = messageData.sender === "user";
+    static get observedAttributes() {
+        return ['message'];
+    }
 
-    const styles = `
+    connectedCallback() {
+        this.render();
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'message' && oldValue !== newValue) {
+            this.render();
+        }
+    }
+
+    /**
+     * Renders the chat message using the provided message data.
+     */
+    render() {
+        const messageData = JSON.parse(this.getAttribute('message') || '{}');
+        const isUser = messageData.sender === 'user';
+
+        const styles = `
             :host {
                 display: block;
                 font-size: inherit;
@@ -32,7 +41,7 @@ class ChatMessage extends HTMLElement {
 
             .message-container {
                 display: flex;
-                flex-direction: ${isUser ? "row-reverse" : "row"};
+                flex-direction: ${isUser ? 'row-reverse' : 'row'};
                 align-items: flex-end;
             }
 
@@ -41,36 +50,36 @@ class ChatMessage extends HTMLElement {
                 height: 4rem;
                 border-radius: 50%;
                 background-color: #e0e0e0;
-                margin: ${isUser ? "0 0 0 1.2rem" : "0 1.2rem 0 0"};
+                margin: ${isUser ? '0 0 0 1.2rem' : '0 1.2rem 0 0'};
             }
 
             .message-bubble {
                 max-width: 70%;
                 padding: 1.2rem 1.6rem;
                 background-color: ${
-                  messageData.placeholder ? "#e0f7fa" : "#fff"
+                    messageData.placeholder ? '#e0f7fa' : '#fff'
                 };
                 background-image: ${
-                  messageData.placeholder
-                    ? "linear-gradient(122deg, #019cae, #307fc1)"
-                    : "none"
+                    messageData.placeholder
+                        ? 'linear-gradient(122deg, #019cae, #307fc1)'
+                        : 'none'
                 };
                 border-radius: ${
-                  messageData.placeholder
-                    ? "1.6rem 1.6rem 1.6rem 0"
-                    : isUser
-                    ? "0.8rem 0.8rem 0 0.8rem"
-                    : "0.8rem 0.8rem 0.8rem 0"
+                    messageData.placeholder
+                        ? '1.6rem 1.6rem 1.6rem 0'
+                        : isUser
+                        ? '0.8rem 0.8rem 0 0.8rem'
+                        : '0.8rem 0.8rem 0.8rem 0'
                 };
                 box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.05);
                 border: ${
-                  messageData.placeholder
-                    ? "solid 1px transparent"
-                    : isUser
-                    ? "solid 1px #307fc1"
-                    : "solid 1px transparent"
+                    messageData.placeholder
+                        ? 'solid 1px transparent'
+                        : isUser
+                        ? 'solid 1px #307fc1'
+                        : 'solid 1px transparent'
                 };
-                color: ${messageData.placeholder ? "#fff" : "inherit"};
+                color: ${messageData.placeholder ? '#fff' : 'inherit'};
                 font-size: 1.4rem;
                 position: relative;
             }
@@ -126,30 +135,30 @@ class ChatMessage extends HTMLElement {
             }
         `;
 
-    this.shadowRoot.innerHTML = `
+        this.shadowRoot.innerHTML = `
             <style>${styles}</style>
             <div class="message-container">
                 <img class="avatar"
                      src="${
-                       isUser
-                         ? "https://gribelu.github.io/eid-chat/img/avatar.svg"
-                         : "https://gribelu.github.io/eid-chat/img/avatar.svg"
+                         isUser
+                             ? 'https://gribelu.github.io/eid-chat/img/avatar.svg'
+                             : 'https://gribelu.github.io/eid-chat/img/avatar.svg'
                      }"
-                     alt="${isUser ? "User" : "AI"} avatar">
+                     alt="${isUser ? 'User' : 'AI'} avatar">
                 <div class="message-bubble ${
-                  messageData.placeholder ? "placeholder" : ""
+                    messageData.placeholder ? 'placeholder' : ''
                 }">
                     <div class="message-content">
                         ${
-                          messageData.placeholder
-                            ? '<span class="dot">&bull;</span><span class="dot">&bull;</span><span class="dot">&bull;</span>'
-                            : messageData.text
+                            messageData.placeholder
+                                ? '<span class="dot">&bull;</span><span class="dot">&bull;</span><span class="dot">&bull;</span>'
+                                : messageData.text
                         }
                     </div>
                 </div>
             </div>
         `;
-  }
+    }
 }
 
-customElements.define("chat-message", ChatMessage);
+customElements.define('chat-message', ChatMessage);
