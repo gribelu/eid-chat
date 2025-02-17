@@ -1,49 +1,49 @@
-import { styles } from "./styles/styles.js";
-import "./components/chat-message.js";
-import "./components/chat-input.js";
-import "./components/chat-history.js";
-import "./components/chat-inspect.js";
+import { styles } from './styles/styles.js';
+import './components/chat-message.js';
+import './components/chat-input.js';
+import './components/chat-history.js';
+import './components/chat-inspect.js';
 import {
-  initializeSignalRConnection,
-  sendMessageToApi,
-  onReceiveMessage,
-  onCompleteMessage,
-} from "./services/api-service.js";
+    initializeSignalRConnection,
+    sendMessageToApi,
+    onReceiveMessage,
+    onCompleteMessage,
+} from './services/api-service.js';
 
 class ChatBot extends HTMLElement {
-  static get observedAttributes() {
-    return ["server-url", "module-id"];
-  }
+    static get observedAttributes() {
+        return ['server-url', 'module-id'];
+    }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
 
-    // Initialize config
-    this.config = {
-      serverUrl: this.getAttribute("server-url"),
-      moduleId: this.getAttribute("module-id"),
-    };
+        // Initialize config
+        this.config = {
+            serverUrl: this.getAttribute('server-url'),
+            moduleId: this.getAttribute('module-id'),
+        };
 
-    // Load SignalR script
-    this.loadSignalR().then(() => {
-      this.initializeConnection();
-    });
+        // Load SignalR script
+        this.loadSignalR().then(() => {
+            this.initializeConnection();
+        });
 
-    // Initialize state
-    this.state = {
-      isOpen: false,
-      isFullscreen: false,
-      messages: [],
-      isConnected: false,
-      showHistory: false,
-      isInspectMode: false,
-      connectionStatus: "connecting",
-    };
+        // Initialize state
+        this.state = {
+            isOpen: false,
+            isFullscreen: false,
+            messages: [],
+            isConnected: false,
+            showHistory: false,
+            isInspectMode: false,
+            connectionStatus: 'connecting',
+        };
 
-    // Create template
-    const template = document.createElement("template");
-    template.innerHTML = `
+        // Create template
+        const template = document.createElement('template');
+        template.innerHTML = `
             <style>${styles}</style>
             <div class="chat-container">
                 <button class="toggle-button">
@@ -97,334 +97,332 @@ class ChatBot extends HTMLElement {
             </div>
         `;
 
-    this.shadowRoot.appendChild(template.content.cloneNode(true));
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-    // Bind methods
-    this.handleToggleChat = this.handleToggleChat.bind(this);
-    this.handleToggleFullscreen = this.handleToggleFullscreen.bind(this);
-    this.handleSendMessage = this.handleSendMessage.bind(this);
-    this.handleInspect = this.handleInspect.bind(this);
-    this.handleNewChat = this.handleNewChat.bind(this);
-    this.handleHistorySelect = this.handleHistorySelect.bind(this);
-    this.handleToggleHistory = this.handleToggleHistory.bind(this);
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (oldValue === newValue) return;
-
-    switch (name) {
-      case "server-url":
-        this.config.serverUrl = newValue;
-        break;
-      case "module-id":
-        this.config.moduleId = newValue;
-        break;
+        // Bind methods
+        this.handleToggleChat = this.handleToggleChat.bind(this);
+        this.handleToggleFullscreen = this.handleToggleFullscreen.bind(this);
+        this.handleInspect = this.handleInspect.bind(this);
+        this.handleNewChat = this.handleNewChat.bind(this);
+        this.handleHistorySelect = this.handleHistorySelect.bind(this);
+        this.handleToggleHistory = this.handleToggleHistory.bind(this);
     }
-  }
 
-  async loadSignalR() {
-    if (window.signalR) return Promise.resolve();
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue === newValue) return;
 
-    return new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src =
-        "https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js";
-      script.async = true;
-      script.onload = resolve;
-      script.onerror = () => reject(new Error("Failed to load SignalR"));
-      document.head.appendChild(script);
-    });
-  }
+        switch (name) {
+            case 'server-url':
+                this.config.serverUrl = newValue;
+                break;
+            case 'module-id':
+                this.config.moduleId = newValue;
+                break;
+        }
+    }
 
-  connectedCallback() {
-    this.setupEventListeners();
-    this.setupMessageHandlers();
-  }
+    async loadSignalR() {
+        if (window.signalR) return Promise.resolve();
 
-  disconnectedCallback() {
-    // Cleanup event listeners
-  }
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src =
+                'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js';
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = () => reject(new Error('Failed to load SignalR'));
+            document.head.appendChild(script);
+        });
+    }
 
-  setupEventListeners() {
-    const toggleBtn = this.shadowRoot.querySelector(".toggle-button");
-    toggleBtn.addEventListener("click", this.handleToggleChat);
+    connectedCallback() {
+        this.setupEventListeners();
+        this.setupMessageHandlers();
+    }
 
-    const fullscreenBtn = this.shadowRoot.querySelector(".fullscreen");
-    fullscreenBtn.addEventListener("click", this.handleToggleFullscreen);
+    disconnectedCallback() {
+        // Cleanup event listeners
+    }
 
-    const closeBtn = this.shadowRoot.querySelector(".close");
-    closeBtn.addEventListener("click", this.handleToggleChat);
+    setupEventListeners() {
+        const toggleBtn = this.shadowRoot.querySelector('.toggle-button');
+        toggleBtn.addEventListener('click', this.handleToggleChat);
 
-    const inspectBtn = this.shadowRoot.querySelector(".inspect");
-    inspectBtn.addEventListener("click", this.handleInspect);
+        const fullscreenBtn = this.shadowRoot.querySelector('.fullscreen');
+        fullscreenBtn.addEventListener('click', this.handleToggleFullscreen);
 
-    const historyBtn = this.shadowRoot.querySelector(".history");
-    historyBtn.addEventListener("click", this.handleToggleHistory);
+        const closeBtn = this.shadowRoot.querySelector('.close');
+        closeBtn.addEventListener('click', this.handleToggleChat);
 
-    const newChatBtn = this.shadowRoot.querySelector(".new-chat");
-    newChatBtn.addEventListener("click", this.handleNewChat);
+        const inspectBtn = this.shadowRoot.querySelector('.inspect');
+        inspectBtn.addEventListener('click', this.handleInspect);
 
-    const chatInput = this.shadowRoot.querySelector("chat-input");
-    chatInput.addEventListener("message-sent", (e) =>
-      this.handleSendMessage(e.detail)
-    );
-  }
+        const historyBtn = this.shadowRoot.querySelector('.history');
+        historyBtn.addEventListener('click', this.handleToggleHistory);
 
-  async initializeConnection() {
-    try {
-      if (!this.config.serverUrl || !this.config.moduleId) {
-        throw new Error(
-          "Missing required configuration: server-url and module-id attributes are required"
+        const newChatBtn = this.shadowRoot.querySelector('.new-chat');
+        newChatBtn.addEventListener('click', this.handleNewChat);
+
+        const chatInput = this.shadowRoot.querySelector('chat-input');
+        chatInput.addEventListener('message-sent', (e) =>
+            this.handleSendMessage(e.detail),
         );
-      }
-
-      await initializeSignalRConnection(this.config);
-      this.state.isConnected = true;
-      this.state.connectionStatus = "connected";
-    } catch (error) {
-      console.error("Connection failed:", error);
-      this.state.connectionStatus = "disconnected";
-
-      // Show error message to user
-      const errorMessage = {
-        id: Date.now(),
-        text: "Failed to initialize chat. Please check configuration and try again.",
-        sender: "system",
-        timestamp: new Date(),
-      };
-      this.state.messages.push(errorMessage);
-      this.updateUI();
     }
-  }
 
-  setupMessageHandlers() {
-    onReceiveMessage((messageChunk) => {
-      const lastMessage = this.state.messages[this.state.messages.length - 1];
+    async initializeConnection() {
+        try {
+            if (!this.config.serverUrl || !this.config.moduleId) {
+                throw new Error(
+                    'Missing required configuration: server-url and module-id attributes are required',
+                );
+            }
 
-      if (lastMessage && lastMessage.placeholder) {
-        const updatedMessage = {
-          ...lastMessage,
-          text: messageChunk,
-          placeholder: false,
-          streaming: true,
-        };
-        this.state.messages[this.state.messages.length - 1] = updatedMessage;
-      } else if (
-        lastMessage &&
-        lastMessage.sender === "ai" &&
-        lastMessage.streaming
-      ) {
-        const updatedMessage = {
-          ...lastMessage,
-          text: lastMessage.text + messageChunk,
-        };
-        this.state.messages[this.state.messages.length - 1] = updatedMessage;
-      } else {
-        const aiMessage = {
-          id: Date.now(),
-          text: messageChunk,
-          sender: "ai",
-          timestamp: new Date(),
-          streaming: true,
-        };
-        this.state.messages.push(aiMessage);
-      }
-      this.updateUI();
-    });
+            await initializeSignalRConnection(this.config);
+            this.state.isConnected = true;
+            this.state.connectionStatus = 'connected';
+        } catch (error) {
+            console.error('Connection failed:', error);
+            this.state.connectionStatus = 'disconnected';
 
-    onCompleteMessage(() => {
-      const lastMessage = this.state.messages[this.state.messages.length - 1];
-      if (lastMessage && lastMessage.streaming) {
-        const updatedMessage = {
-          ...lastMessage,
-          streaming: false,
-        };
-        this.state.messages[this.state.messages.length - 1] = updatedMessage;
+            // Show error message to user
+            const errorMessage = {
+                id: Date.now(),
+                text: 'Failed to initialize chat. Please check configuration and try again.',
+                sender: 'system',
+                timestamp: new Date(),
+            };
+            this.state.messages.push(errorMessage);
+            this.updateUI();
+        }
+    }
+
+    setupMessageHandlers() {
+        onReceiveMessage((messageChunk) => {
+            const lastMessage =
+                this.state.messages[this.state.messages.length - 1];
+
+            if (lastMessage && lastMessage.placeholder) {
+                const updatedMessage = {
+                    ...lastMessage,
+                    text: messageChunk,
+                    placeholder: false,
+                    streaming: true,
+                };
+                this.state.messages[this.state.messages.length - 1] =
+                    updatedMessage;
+            } else if (
+                lastMessage &&
+                lastMessage.sender === 'ai' &&
+                lastMessage.streaming
+            ) {
+                const updatedMessage = {
+                    ...lastMessage,
+                    text: lastMessage.text + messageChunk,
+                };
+                this.state.messages[this.state.messages.length - 1] =
+                    updatedMessage;
+            } else {
+                const aiMessage = {
+                    id: Date.now(),
+                    text: messageChunk,
+                    sender: 'ai',
+                    timestamp: new Date(),
+                    streaming: true,
+                };
+                this.state.messages.push(aiMessage);
+            }
+            this.updateUI();
+        });
+
+        onCompleteMessage(() => {
+            const lastMessage =
+                this.state.messages[this.state.messages.length - 1];
+            if (lastMessage && lastMessage.streaming) {
+                const updatedMessage = {
+                    ...lastMessage,
+                    streaming: false,
+                };
+                this.state.messages[this.state.messages.length - 1] =
+                    updatedMessage;
+                this.updateUI();
+            }
+        });
+    }
+
+    handleToggleChat() {
+        this.state.isOpen = !this.state.isOpen;
+        this.state.isInspectMode = false;
         this.updateUI();
-      }
-    });
-  }
-
-  handleToggleChat() {
-    this.state.isOpen = !this.state.isOpen;
-    this.state.isInspectMode = false;
-    this.updateUI();
-  }
-
-  handleToggleFullscreen() {
-    this.state.isFullscreen = !this.state.isFullscreen;
-    this.updateUI();
-  }
-
-  handleToggleHistory() {
-    this.state.showHistory = !this.state.showHistory;
-    this.updateUI();
-  }
-
-  handleNewChat() {
-    this.state.messages = [];
-    this.updateUI();
-  }
-
-  handleHistorySelect(messages) {
-    this.state.messages = messages;
-    this.state.showHistory = false;
-    this.updateUI();
-  }
-
-  handleInspect() {
-    this.state.isInspectMode = true;
-    this.state.isOpen = false;
-    this.updateUI();
-
-    const chatInspect = document.createElement("chat-inspect");
-    chatInspect.addEventListener("element-selected", (e) =>
-      this.handleElementSelected(e.detail)
-    );
-    chatInspect.addEventListener("inspect-cancel", () =>
-      this.handleInspectCancel()
-    );
-    document.body.appendChild(chatInspect);
-  }
-
-  async handleSendMessage({ formattedText, rawText }) {
-    if (!this.state.isConnected) {
-      console.error("Not connected to server");
-      return;
     }
 
-    const userMessage = {
-      id: Date.now(),
-      text: formattedText,
-      sender: "user",
-      timestamp: new Date(),
+    handleToggleFullscreen() {
+        this.state.isFullscreen = !this.state.isFullscreen;
+        this.updateUI();
+    }
+
+    handleToggleHistory() {
+        this.state.showHistory = !this.state.showHistory;
+        this.updateUI();
+    }
+
+    handleNewChat() {
+        this.state.messages = [];
+        this.updateUI();
+    }
+
+    handleHistorySelect(messages) {
+        this.state.messages = messages;
+        this.state.showHistory = false;
+        this.updateUI();
+    }
+
+    handleInspect() {
+        this.state.isInspectMode = true;
+        this.state.isOpen = false;
+        this.updateUI();
+
+        const chatInspect = document.createElement('chat-inspect');
+        chatInspect.addEventListener('element-selected', (e) => {
+            this.handleElementSelected(e.detail.message);
+        });
+        chatInspect.addEventListener('inspect-cancel', () => {
+            this.handleInspectCancel();
+        });
+        document.body.appendChild(chatInspect);
+    }
+
+    handleElementSelected(message) {
+        this.state.isInspectMode = false;
+        this.state.isOpen = true;
+
+        // Show user message in chat
+        const userMessage = {
+            id: Date.now(),
+            text: message,
+            sender: 'user',
+            timestamp: new Date(),
+        };
+        this.state.messages.push(userMessage);
+
+        const placeholderMessage = {
+            id: Date.now() + 1,
+            text: '',
+            sender: 'ai',
+            timestamp: new Date(),
+            placeholder: true,
+        };
+        this.state.messages.push(placeholderMessage);
+
+        this.updateUI();
+        this.handleSendMessageFromInspect(message);
+    }
+
+    async handleSendMessageFromInspect(text) {
+        try {
+            await sendMessageToApi(text);
+        } catch (error) {
+            console.error('Failed to send inspect message:', error);
+        }
+    }
+
+    handleInspectCancel() {
+        this.state.isInspectMode = false;
+        this.updateUI();
+    }
+
+    handleSendMessage = async ({ formattedText, rawText }) => {
+        if (!this.state.isConnected) {
+            console.error('Not connected to server');
+            return;
+        }
+        const userMessage = {
+            id: Date.now(),
+            text: formattedText,
+            sender: 'user',
+            timestamp: new Date(),
+        };
+        this.state.messages.push(userMessage);
+
+        const placeholderMessage = {
+            id: Date.now() + 1,
+            text: '',
+            sender: 'ai',
+            timestamp: new Date(),
+            placeholder: true,
+        };
+        this.state.messages.push(placeholderMessage);
+        this.updateUI();
+
+        try {
+            await sendMessageToApi(
+                `Textbox Query: ${rawText}`,
+                'en',
+                this.config.moduleId,
+            );
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            this.state.messages = this.state.messages.filter(
+                (msg) => msg.id !== placeholderMessage.id,
+            );
+            const errorMessage = {
+                id: Date.now() + 2,
+                text: 'Failed to send message. Please try again later.',
+                sender: 'system',
+                timestamp: new Date(),
+            };
+            this.state.messages.push(errorMessage);
+            this.updateUI();
+        }
     };
 
-    this.state.messages.push(userMessage);
+    updateUI() {
+        const container = this.shadowRoot.querySelector('.chat-bot-container');
+        container.classList.toggle('open', this.state.isOpen);
+        container.classList.toggle('fullscreen', this.state.isFullscreen);
 
-    const placeholderMessage = {
-      id: Date.now() + 1,
-      text: "",
-      sender: "ai",
-      timestamp: new Date(),
-      placeholder: true,
-    };
+        // Update messages display
+        this.renderMessages();
 
-    this.state.messages.push(placeholderMessage);
-    this.updateUI();
+        // Update history visibility
+        const history = this.shadowRoot.querySelector('chat-history');
+        if (this.state.showHistory && !history) {
+            const historyElement = document.createElement('chat-history');
+            historyElement.addEventListener('select', (e) =>
+                this.handleHistorySelect(e.detail),
+            );
+            this.shadowRoot.appendChild(historyElement);
+        } else if (!this.state.showHistory && history) {
+            history.remove();
+        }
 
-    try {
-      await sendMessageToApi(
-        `Textbox Query: ${rawText}`,
-        "en",
-        this.config.moduleId
-      );
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      this.state.messages = this.state.messages.filter(
-        (msg) => msg.id !== placeholderMessage.id
-      );
-
-      const errorMessage = {
-        id: Date.now() + 2,
-        text: "Failed to send message. Please try again later.",
-        sender: "system",
-        timestamp: new Date(),
-      };
-
-      this.state.messages.push(errorMessage);
-      this.updateUI();
-    }
-  }
-
-  handleElementSelected({ message, displayedMessage }) {
-    this.state.isInspectMode = false;
-    this.state.isOpen = true;
-
-    if (displayedMessage) {
-      const userMessage = {
-        id: Date.now(),
-        text: displayedMessage,
-        sender: "user",
-        timestamp: new Date(),
-      };
-      this.state.messages.push(userMessage);
+        // Scroll to bottom
+        const messagesContainer = this.shadowRoot.querySelector(
+            '.messages-container',
+        );
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    const placeholderMessage = {
-      id: Date.now() + 1,
-      text: "",
-      sender: "ai",
-      timestamp: new Date(),
-      placeholder: true,
-    };
-    this.state.messages.push(placeholderMessage);
+    renderMessages() {
+        const messagesContainerWrapper = this.shadowRoot.querySelector(
+            '.messages-container-wrapper',
+        );
+        const messagesContainer = this.shadowRoot.querySelector(
+            '.messages-container',
+        );
+        messagesContainer.innerHTML = '';
 
-    this.updateUI();
-    this.handleSendMessageFromInspect(message, "en");
-  }
+        messagesContainerWrapper.style.display =
+            this.state.messages.length === 0 ? 'none' : 'block';
 
-  async handleSendMessageFromInspect(text, locale) {
-    try {
-      await sendMessageToApi(text, locale);
-    } catch (error) {
-      console.error("Failed to send inspect message:", error);
+        messagesContainer.style.display =
+            this.state.messages.length === 0 ? 'none' : 'block';
+
+        this.state.messages.forEach((message) => {
+            const messageElement = document.createElement('chat-message');
+            messageElement.setAttribute('message', JSON.stringify(message));
+            messagesContainer.appendChild(messageElement);
+        });
     }
-  }
-
-  handleInspectCancel() {
-    this.state.isInspectMode = false;
-    this.updateUI();
-  }
-
-  updateUI() {
-    const container = this.shadowRoot.querySelector(".chat-bot-container");
-    container.classList.toggle("open", this.state.isOpen);
-    container.classList.toggle("fullscreen", this.state.isFullscreen);
-
-    // Update messages display
-    this.renderMessages();
-
-    // Update history visibility
-    const history = this.shadowRoot.querySelector("chat-history");
-    if (this.state.showHistory && !history) {
-      const historyElement = document.createElement("chat-history");
-      historyElement.addEventListener("select", (e) =>
-        this.handleHistorySelect(e.detail)
-      );
-      this.shadowRoot.appendChild(historyElement);
-    } else if (!this.state.showHistory && history) {
-      history.remove();
-    }
-
-    // Scroll to bottom
-    const messagesContainer = this.shadowRoot.querySelector(
-      ".messages-container"
-    );
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }
-
-  renderMessages() {
-    const messagesContainerWrapper = this.shadowRoot.querySelector(
-      ".messages-container-wrapper"
-    );
-    const messagesContainer = this.shadowRoot.querySelector(
-      ".messages-container"
-    );
-    messagesContainer.innerHTML = "";
-
-    messagesContainerWrapper.style.display =
-      this.state.messages.length === 0 ? "none" : "block";
-
-    messagesContainer.style.display =
-      this.state.messages.length === 0 ? "none" : "block";
-
-    this.state.messages.forEach((message) => {
-      const messageElement = document.createElement("chat-message");
-      messageElement.setAttribute("message", JSON.stringify(message));
-      messagesContainer.appendChild(messageElement);
-    });
-  }
 }
 
-customElements.define("chat-bot", ChatBot);
+customElements.define('chat-bot', ChatBot);

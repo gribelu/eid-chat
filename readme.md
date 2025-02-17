@@ -124,7 +124,14 @@ Use the following attributes to add extra text before or after the context from 
     The final prompt context will be a concatenation of:
     "P1 Extra info S1 P2 Note detail S2"
 
-All the context extracted (in the order described above) is concatenated into a single string that the AI will use as its prompt.
+All the context extracted (in the order described above) is concatenated into a single string - separated by a space - that the AI will use as its prompt.
+
+#### e. Displayed message
+
+`data-ai-displayed-message` is the text that will be displayed in the chat interface.
+
+-   If this attribute is absent, the default is to display the entire context defined in the above attributes.
+-   If this attribute is present, it will be used as the displayed message instead of the context defined above. If it's present but empty, no text will be displayed in the UI.
 
 ## Possible Enhancements
 
