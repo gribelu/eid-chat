@@ -80,6 +80,14 @@ class ChatInspect extends HTMLElement {
                 const selectorAttr =
                     element.getAttribute('data-ai-context-from-selectors') ||
                     '';
+                const prefixAttr =
+                    element.getAttribute(
+                        'data-ai-context-from-selectors-prefixes',
+                    ) || '';
+                const suffixAttr =
+                    element.getAttribute(
+                        'data-ai-context-from-selectors-suffixes',
+                    ) || '';
 
                 let mainText = contextAttr;
                 // If no context or user re-enabled text extraction, gather text
@@ -94,16 +102,23 @@ class ChatInspect extends HTMLElement {
                     const selectors = selectorAttr
                         .split(',')
                         .map((sel) => sel.trim());
-                    selectors.forEach((sel) => {
+                    const prefixes = prefixAttr.split(';');
+                    const suffixes = suffixAttr.split(';');
+
+                    selectors.forEach((sel, i) => {
                         document.querySelectorAll(sel).forEach((targetEl) => {
                             const customCtx =
                                 targetEl.getAttribute('data-ai-context');
+                            const p = prefixes[i] ? prefixes[i].trim() : '';
+                            const s = suffixes[i] ? suffixes[i].trim() : '';
+
                             if (customCtx) {
-                                mainText += ' ' + customCtx;
+                                mainText += ` ${p} ${customCtx} ${s}`;
                             } else {
-                                mainText +=
-                                    ' ' +
-                                    this.getTextFromElement(targetEl, 'all');
+                                mainText += ` ${p} ${this.getTextFromElement(
+                                    targetEl,
+                                    'all',
+                                )} ${s}`;
                             }
                         });
                     });
