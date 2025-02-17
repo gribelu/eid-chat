@@ -137,9 +137,14 @@ class ChatInspect extends HTMLElement {
     }
 
     getTextFromElement(el, depth) {
-        // If no depth or zero, just el's own text
         if (!depth || depth === '0') {
-            return (el.childNodes[0]?.nodeValue || el.textContent || '').trim();
+            let text = '';
+            el.childNodes.forEach((child) => {
+                if (child.nodeType === Node.TEXT_NODE) {
+                    text += ' ' + child.nodeValue;
+                }
+            });
+            return text.trim();
         }
         // If numeric depth
         if (!isNaN(depth) && Number(depth) > 0) {
