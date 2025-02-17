@@ -343,7 +343,8 @@ class ChatBot extends HTMLElement {
 
     async handleSendMessageFromInspect(text) {
         try {
-            await sendMessageToApi(text);
+            // Prefix message sent to the server; won't be displayed to the user
+            await sendMessageToApi(`Context: ${text}`);
         } catch (error) {
             console.error('Failed to send inspect message:', error);
         }
@@ -381,8 +382,9 @@ class ChatBot extends HTMLElement {
         this.updateUI();
 
         try {
+            // Prefix message sent to the server with "Context:"
             await sendMessageToApi(
-                `Textbox Query: ${rawText}`,
+                `Context: ${rawText}`,
                 'en',
                 this.config.moduleId,
             );
