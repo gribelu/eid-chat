@@ -77,11 +77,17 @@ export const initializeSignalRConnection = async (config) => {
     }
 };
 
-export const sendMessageToApi = async (message, languageCode = 'en') => {
+export const sendMessageToApi = async (
+    message,
+    languageCode = 'en',
+    moduleId,
+) => {
+    if (!moduleId) {
+        throw new Error('moduleId is required');
+    }
     if (connection?.state === 'Connected') {
         try {
             const clientId = generateClientId();
-            const moduleId = window.chatWidgetConfig.moduleId;
 
             await connection.invoke(
                 'SendMessageToServer',
