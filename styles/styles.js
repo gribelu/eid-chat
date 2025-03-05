@@ -189,24 +189,37 @@ export const styles = `
         transform: scale(1.1);
     }
 
-    /* Connection status styles */
-    .toggle-button.connecting {
-        border-color: var(--connecting-color);
-        animation: pulse 1.5s infinite;
+    /* Connection status indicator */
+    .toggle-button::after {
+        content: '';
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background-color: var(--disconnected-color);
+        border: 0.1rem solid white;
+        z-index: 2002;
     }
 
-    .toggle-button.connected {
-        border-color: var(--connected-color);
+    .toggle-button.connecting::after {
+        background-color: var(--connecting-color);
+        animation: pulse-indicator 1.5s infinite;
     }
 
-    .toggle-button.disconnected {
-        border-color: var(--disconnected-color);
+    .toggle-button.connected::after {
+        background-color: var(--connected-color);
     }
 
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4); }
-        70% { box-shadow: 0 0 0 10px rgba(255, 165, 0, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0); }
+    .toggle-button.disconnected::after {
+        background-color: var(--disconnected-color);
+    }
+
+    @keyframes pulse-indicator {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
     }
 
     .header {

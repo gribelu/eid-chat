@@ -513,7 +513,7 @@ class ChatBot extends HTMLElement {
     container.classList.toggle("open", this.state.isOpen);
     container.classList.toggle("fullscreen", this.state.isFullscreen);
 
-    // Update connection status indicator if needed
+    // Update connection status indicator
     const toggleButton = this.shadowRoot.querySelector(".toggle-button");
     toggleButton.classList.remove("connecting", "connected", "disconnected");
     toggleButton.classList.add(this.state.connectionStatus);
