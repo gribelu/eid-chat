@@ -7,6 +7,9 @@ export const styles = `
         --border-color: rgba(0, 0, 0, 0.05);
         --shadow-color: rgba(0, 0, 0, 0.15);
         --transition-duration: 0.3s;
+        --connected-color: #4CAF50;
+        --connecting-color: #ffa500;
+        --disconnected-color: #f44336;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         font-family: inherit;
         font-size: inherit;
@@ -184,6 +187,26 @@ export const styles = `
 
     .toggle-button:hover {
         transform: scale(1.1);
+    }
+
+    /* Connection status styles */
+    .toggle-button.connecting {
+        border-color: var(--connecting-color);
+        animation: pulse 1.5s infinite;
+    }
+
+    .toggle-button.connected {
+        border-color: var(--connected-color);
+    }
+
+    .toggle-button.disconnected {
+        border-color: var(--disconnected-color);
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 165, 0, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0); }
     }
 
     .header {

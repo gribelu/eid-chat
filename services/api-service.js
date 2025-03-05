@@ -22,6 +22,11 @@ function generateClientId() {
   return clientId;
 }
 
+// Helper function to dispatch connection state events
+function dispatchConnectionEvent(eventName) {
+  document.dispatchEvent(new CustomEvent(eventName));
+}
+
 export const initializeSignalRConnection = async (config) => {
   if (!config?.serverUrl) {
     throw new Error("serverUrl configuration is required");
@@ -49,23 +54,28 @@ export const initializeSignalRConnection = async (config) => {
 
     connection.onclose(async () => {
       console.log("SignalR connection closed. Attempting to reconnect.");
+      dispatchConnectionEvent("signalr-disconnected");
       await startConnection();
     });
 
     connection.onreconnecting(() => {
       console.log("SignalR is attempting to reconnect.");
+      dispatchConnectionEvent("signalr-reconnecting");
     });
 
     connection.onreconnected(() => {
       console.log("SignalR reconnected successfully.");
+      dispatchConnectionEvent("signalr-connected");
     });
 
     const startConnection = async () => {
       try {
         await connection.start();
         console.log("SignalR connected");
+        dispatchConnectionEvent("signalr-connected");
       } catch (error) {
         console.error("SignalR connection error:", error);
+        dispatchConnectionEvent("signalr-disconnected");
         setTimeout(() => startConnection(), 5000); // Retry after delay
       }
     };
@@ -73,6 +83,7 @@ export const initializeSignalRConnection = async (config) => {
     await startConnection();
   } catch (error) {
     console.error("SignalR Connection Error:", error);
+    dispatchConnectionEvent("signalr-disconnected");
     throw error;
   }
 };
@@ -117,6 +128,7 @@ export const disconnectSignalR = async () => {
       connection = null;
       eventHandlers.onReceiveMessage = null;
       eventHandlers.onCompleteMessage = null;
+      dispatchConnectionEvent("signalr-disconnected");
     } catch (error) {
       console.error("Error stopping SignalR connection:", error);
       throw error;

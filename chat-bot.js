@@ -32,10 +32,8 @@ class ChatBot extends HTMLElement {
       moduleId: this.getAttribute("module-id"),
     };
 
-    // Load SignalR script & initialize connection
-    this.loadSignalR().then(() => {
-      this.initializeConnection();
-    });
+    // Load SignalR script but don't initialize connection yet
+    this.loadSignalR();
 
     // Initialize state for UI management
     this.state = {
@@ -45,7 +43,8 @@ class ChatBot extends HTMLElement {
       isConnected: false,
       showHistory: false,
       isInspectMode: false,
-      connectionStatus: "connecting",
+      connectionStatus: "disconnected",
+      connectionInitialized: false,
     };
 
     // Create template for chat UI
@@ -53,7 +52,7 @@ class ChatBot extends HTMLElement {
     template.innerHTML = `
             <style>${styles}</style>
             <div class="chat-container">
-                <button class="toggle-button">
+                <button class="toggle-button disconnected">
                     <svg width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Dashboard---My-identity" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g id="My-Identity-Header" transform="translate(-217.000000, -22.000000)" fill="#307FC1"><g id="Group-4"><g id="header"><g id="logo-empowerid" transform="translate(217.000000, 22.000000)"><path d="M10.2857143,7 L13.6387529,7 C16.9030426,7 18.8571429,8.91150333 18.8571429,12.1427955 C18.8571429,15.374211 16.9030426,17.2857143 13.6387529,17.2857143 L10.2857143,17.2857143 L10.2857143,7 Z M13.4432449,19.5176942 C18.5821349,19.5176942 21.5893052,16.7350599 21.5893052,11.9999089 C21.5893052,7.26487932 18.5821349,4.48206279 13.4432449,4.48206279 L8.95497266,4.48206279 C8.05728175,4.48206279 7.51871582,5.02074888 7.51871582,5.91831599 L7.51871582,18.0815017 C7.51871582,18.9791296 8.05728175,19.5176942 8.95497266,19.5176942 L13.4432449,19.5176942 Z M5.82693944,18.2161581 L5.82693944,5.78378118 C5.82693944,4.88615332 5.33321855,4.34758875 4.50285599,4.34758875 C3.65013166,4.34758875 3.15641078,4.88615332 3.15641078,5.78378118 L3.15641078,18.2161581 C3.15641078,19.1138467 3.65013166,19.6524113 4.50285599,19.6524113 C5.33321855,19.6524113 5.82693944,19.1138467 5.82693944,18.2161581 Z M19.1438525,0 C21.8258659,0 24,2.17412858 24,4.85613516 L24,19.1439256 C24,21.8258106 21.8258659,24 19.1438525,24 L4.85608669,24 C2.17413409,24 0,21.8258106 0,19.1439256 L0,4.85613516 C0,2.17412858 2.17413409,0 4.85608669,0 L19.1438525,0 Z" id="Combined-Shape-Copy"></path></g></g></g></g></g></svg>
                 </button>
                 <div class="chat-bot-container">
@@ -155,6 +154,44 @@ class ChatBot extends HTMLElement {
 
   disconnectedCallback() {
     // Cleanup event listeners
+    document.removeEventListener("signalr-connected", this.updateUI);
+    document.removeEventListener("signalr-disconnected", this.updateUI);
+    document.removeEventListener("signalr-reconnecting", this.updateUI);
+
+    const toggleBtn = this.shadowRoot.querySelector(".toggle-button");
+    if (toggleBtn) {
+      toggleBtn.removeEventListener("click", this.handleToggleChat);
+    }
+
+    const fullscreenBtn = this.shadowRoot.querySelector(".fullscreen");
+    if (fullscreenBtn) {
+      fullscreenBtn.removeEventListener("click", this.handleToggleFullscreen);
+    }
+
+    const closeBtn = this.shadowRoot.querySelector(".close");
+    if (closeBtn) {
+      closeBtn.removeEventListener("click", this.handleToggleChat);
+    }
+
+    const inspectBtn = this.shadowRoot.querySelector(".inspect");
+    if (inspectBtn) {
+      inspectBtn.removeEventListener("click", this.handleInspect);
+    }
+
+    const historyBtn = this.shadowRoot.querySelector(".history");
+    if (historyBtn) {
+      historyBtn.removeEventListener("click", this.handleToggleHistory);
+    }
+
+    const newChatBtn = this.shadowRoot.querySelector(".new-chat");
+    if (newChatBtn) {
+      newChatBtn.removeEventListener("click", this.handleNewChat);
+    }
+
+    const chatInput = this.shadowRoot.querySelector("chat-input");
+    if (chatInput) {
+      chatInput.removeEventListener("message-sent", this.handleSendMessage);
+    }
   }
 
   /**
@@ -189,6 +226,13 @@ class ChatBot extends HTMLElement {
    * Initializes the SignalR connection and updates state based on success or failure.
    */
   async initializeConnection() {
+    if (this.state.connectionInitialized) {
+      return; // Connection already initialized or in progress
+    }
+
+    this.state.connectionInitialized = true;
+    this.state.connectionStatus = "connecting";
+
     try {
       if (!this.config.serverUrl || !this.config.moduleId) {
         throw new Error(
@@ -202,6 +246,7 @@ class ChatBot extends HTMLElement {
     } catch (error) {
       console.error("Connection failed:", error);
       this.state.connectionStatus = "disconnected";
+      this.state.connectionInitialized = false; // Allow retry on next toggle
 
       // Show error message to user
       const errorMessage = {
@@ -219,6 +264,25 @@ class ChatBot extends HTMLElement {
    * Registers message event handlers for receiving and completing messages.
    */
   setupMessageHandlers() {
+    // Add event listeners for connection state changes
+    document.addEventListener("signalr-connected", () => {
+      this.state.isConnected = true;
+      this.state.connectionStatus = "connected";
+      this.updateUI();
+    });
+
+    document.addEventListener("signalr-disconnected", () => {
+      this.state.isConnected = false;
+      this.state.connectionStatus = "disconnected";
+      this.updateUI();
+    });
+
+    document.addEventListener("signalr-reconnecting", () => {
+      this.state.isConnected = false;
+      this.state.connectionStatus = "connecting";
+      this.updateUI();
+    });
+
     onReceiveMessage((messageChunk) => {
       const lastMessage = this.state.messages[this.state.messages.length - 1];
 
@@ -271,6 +335,12 @@ class ChatBot extends HTMLElement {
   handleToggleChat() {
     this.state.isOpen = !this.state.isOpen;
     this.state.isInspectMode = false;
+
+    // Initialize connection on first open if not already connected
+    if (this.state.isOpen && !this.state.connectionInitialized) {
+      this.initializeConnection();
+    }
+
     this.updateUI();
   }
 
@@ -314,6 +384,11 @@ class ChatBot extends HTMLElement {
     this.state.isInspectMode = false;
     this.state.isOpen = true;
 
+    // Initialize connection if not already connected
+    if (!this.state.connectionInitialized) {
+      this.initializeConnection();
+    }
+
     // Show user message in chat
     const userMessage = {
       id: Date.now(),
@@ -338,10 +413,30 @@ class ChatBot extends HTMLElement {
 
   async handleSendMessageFromInspect(text) {
     try {
+      // Check if connection is initialized, if not, try to initialize
+      if (!this.state.connectionInitialized) {
+        await this.initializeConnection();
+      }
+
+      if (!this.state.isConnected) {
+        console.error("Not connected to server");
+        return;
+      }
+
       // Pass moduleId from attributes
       await sendMessageToApi(`Context: ${text}`, this.config.moduleId);
     } catch (error) {
       console.error("Failed to send inspect message:", error);
+
+      // Show error message to user
+      const errorMessage = {
+        id: Date.now(),
+        text: "Failed to send message. Please try again later.",
+        sender: "system",
+        timestamp: new Date(),
+      };
+      this.state.messages.push(errorMessage);
+      this.updateUI();
     }
   }
 
@@ -354,10 +449,25 @@ class ChatBot extends HTMLElement {
    * Handles the sending of messages from the chat input.
    */
   handleSendMessage = async ({ formattedText, rawText }) => {
+    // Check if connection is initialized, if not, try to initialize
+    if (!this.state.connectionInitialized) {
+      await this.initializeConnection();
+    }
+
     if (!this.state.isConnected) {
       console.error("Not connected to server");
+
+      const errorMessage = {
+        id: Date.now(),
+        text: "Not connected to server. Please try again later.",
+        sender: "system",
+        timestamp: new Date(),
+      };
+      this.state.messages.push(errorMessage);
+      this.updateUI();
       return;
     }
+
     const userMessage = {
       id: Date.now(),
       text: formattedText,
@@ -402,6 +512,11 @@ class ChatBot extends HTMLElement {
     const container = this.shadowRoot.querySelector(".chat-bot-container");
     container.classList.toggle("open", this.state.isOpen);
     container.classList.toggle("fullscreen", this.state.isFullscreen);
+
+    // Update connection status indicator if needed
+    const toggleButton = this.shadowRoot.querySelector(".toggle-button");
+    toggleButton.classList.remove("connecting", "connected", "disconnected");
+    toggleButton.classList.add(this.state.connectionStatus);
 
     // Update messages display
     this.renderMessages();
