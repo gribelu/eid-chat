@@ -1,7 +1,13 @@
+/**
+ * ChatInput Custom Element
+ *
+ * Renders the text input area and send button for user messages.
+ * Manages sending of messages via custom events, and auto-adjusts the input's height.
+ */
 class ChatInput extends HTMLElement {
     constructor() {
-        super()
-        this.attachShadow({ mode: 'open' })
+        super();
+        this.attachShadow({ mode: 'open' });
 
         const styles = `
             :host {
@@ -52,7 +58,7 @@ class ChatInput extends HTMLElement {
                 color: #fff;
                 transform: rotate(-35deg) translateX(0.15rem);
             }
-        `
+        `;
 
         const template = `
             <div class="input-container">
@@ -68,52 +74,62 @@ class ChatInput extends HTMLElement {
 
                 </button>
             </div>
-        `
+        `;
 
         this.shadowRoot.innerHTML = `
             <style>${styles}</style>
             ${template}
-        `
+        `;
 
-        this.textField = this.shadowRoot.querySelector('.text-field')
-        this.sendButton = this.shadowRoot.querySelector('.send-button')
+        this.textField = this.shadowRoot.querySelector('.text-field');
+        this.sendButton = this.shadowRoot.querySelector('.send-button');
 
-        this.handleKeyPress = this.handleKeyPress.bind(this)
-        this.handleSend = this.handleSend.bind(this)
-        this.adjustTextAreaHeight = this.adjustTextAreaHeight.bind(this)
+        // Bind event handlers.
+        this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.handleSend = this.handleSend.bind(this);
+        this.adjustTextAreaHeight = this.adjustTextAreaHeight.bind(this);
     }
 
     connectedCallback() {
-        this.textField.addEventListener('keypress', this.handleKeyPress)
-        this.textField.addEventListener('input', this.adjustTextAreaHeight)
-        this.sendButton.addEventListener('click', this.handleSend)
+        this.textField.addEventListener('keypress', this.handleKeyPress);
+        this.textField.addEventListener('input', this.adjustTextAreaHeight);
+        this.sendButton.addEventListener('click', this.handleSend);
     }
 
     disconnectedCallback() {
-        this.textField.removeEventListener('keypress', this.handleKeyPress)
-        this.textField.removeEventListener('input', this.adjustTextAreaHeight)
-        this.sendButton.removeEventListener('click', this.handleSend)
+        this.textField.removeEventListener('keypress', this.handleKeyPress);
+        this.textField.removeEventListener('input', this.adjustTextAreaHeight);
+        this.sendButton.removeEventListener('click', this.handleSend);
     }
 
+    /**
+     * Adjusts the height of the text area based on its content.
+     */
     adjustTextAreaHeight() {
-        const textarea = this.textField
-        textarea.style.height = 'auto'
-        textarea.style.height = Math.min(textarea.scrollHeight, 72) + 'px' // 72px = 4 rows max
+        const textarea = this.textField;
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 72) + 'px'; // 72px = 4 rows max
     }
 
+    /**
+     * Handles key press events to send message on "Enter" (without Shift).
+     */
     handleKeyPress(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
+            e.preventDefault();
             if (this.textField.value.trim()) {
-                this.handleSend()
+                this.handleSend();
             }
         }
     }
 
+    /**
+     * Handles the send button click event by dispatching a "message-sent" event.
+     */
     handleSend() {
-        const text = this.textField.value.trim()
+        const text = this.textField.value.trim();
         if (text) {
-            const formattedText = text.replace(/\n/g, '<br>')
+            const formattedText = text.replace(/\n/g, '<br>');
 
             // Dispatch custom event with message data
             const event = new CustomEvent('message-sent', {
@@ -121,14 +137,14 @@ class ChatInput extends HTMLElement {
                     formattedText,
                     rawText: text,
                 },
-            })
-            this.dispatchEvent(event)
+            });
+            this.dispatchEvent(event);
 
             // Clear input
-            this.textField.value = ''
-            this.adjustTextAreaHeight()
+            this.textField.value = '';
+            this.adjustTextAreaHeight();
         }
     }
 }
 
-customElements.define('chat-input', ChatInput)
+customElements.define('chat-input', ChatInput);

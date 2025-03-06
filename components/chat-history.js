@@ -1,9 +1,15 @@
+/**
+ * ChatHistory Custom Element
+ *
+ * Displays a list of previous chat conversations.
+ * List items trigger a "history-selected" event with the corresponding messages when clicked.
+ */
 class ChatHistory extends HTMLElement {
     constructor() {
-        super()
-        this.attachShadow({ mode: 'open' })
+        super();
+        this.attachShadow({ mode: 'open' });
 
-        // Initialize state
+        // Initialize history state with sample data
         this.history = [
             {
                 messages: [
@@ -27,7 +33,7 @@ class ChatHistory extends HTMLElement {
                 ],
                 date: '2023-09-30',
             },
-        ]
+        ];
 
         const styles = `
             :host {
@@ -114,7 +120,7 @@ class ChatHistory extends HTMLElement {
                 margin-left: 0.8rem;
                 font-size: 1.2rem;
             }
-        `
+        `;
 
         this.shadowRoot.innerHTML = `
             <style>${styles}</style>
@@ -139,9 +145,14 @@ class ChatHistory extends HTMLElement {
                     </button>
                 </div>
             </div>
-        `
+        `;
     }
 
+    /**
+     * Renders the history items as list items.
+     *
+     * @returns {string} HTML string of history items.
+     */
     renderHistoryItems() {
         return this.history
             .map(
@@ -152,21 +163,24 @@ class ChatHistory extends HTMLElement {
             </div>
         `,
             )
-            .join('')
+            .join('');
     }
 
     connectedCallback() {
-        this.setupEventListeners()
+        this.setupEventListeners();
     }
 
+    /**
+     * Sets up event listeners for history item selection and the load more button.
+     */
     setupEventListeners() {
-        const listItems = this.shadowRoot.querySelectorAll('.list-item')
-        const loadMoreBtn = this.shadowRoot.querySelector('.load-more')
+        const listItems = this.shadowRoot.querySelectorAll('.list-item');
+        const loadMoreBtn = this.shadowRoot.querySelector('.load-more');
 
         listItems.forEach((item) => {
             item.addEventListener('click', () => {
-                const index = parseInt(item.dataset.index)
-                const selectedHistory = this.history[index]
+                const index = parseInt(item.dataset.index);
+                const selectedHistory = this.history[index];
 
                 // Dispatch custom event with selected messages
                 this.dispatchEvent(
@@ -177,19 +191,22 @@ class ChatHistory extends HTMLElement {
                         bubbles: true,
                         composed: true,
                     }),
-                )
-            })
-        })
+                );
+            });
+        });
 
         loadMoreBtn.addEventListener('click', () => {
-            this.handleLoadMore()
-        })
+            this.handleLoadMore();
+        });
     }
 
+    /**
+     * Placeholder for potential load more functionality.
+     */
     handleLoadMore() {
         // Implement load more functionality
-        console.log('Load more clicked')
+        console.log('Load more clicked');
     }
 }
 
-customElements.define('chat-history', ChatHistory)
+customElements.define('chat-history', ChatHistory);

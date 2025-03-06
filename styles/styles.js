@@ -7,6 +7,9 @@ export const styles = `
         --border-color: rgba(0, 0, 0, 0.05);
         --shadow-color: rgba(0, 0, 0, 0.15);
         --transition-duration: 0.3s;
+        --connected-color: #4CAF50;
+        --connecting-color: #ffa500;
+        --disconnected-color: #f44336;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         font-family: inherit;
         font-size: inherit;
@@ -186,6 +189,39 @@ export const styles = `
         transform: scale(1.1);
     }
 
+    /* Connection status indicator */
+    .toggle-button::after {
+        content: '';
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background-color: var(--disconnected-color);
+        border: 0.1rem solid white;
+        z-index: 2002;
+    }
+
+    .toggle-button.connecting::after {
+        background-color: var(--connecting-color);
+        animation: pulse-indicator 1.5s infinite;
+    }
+
+    .toggle-button.connected::after {
+        background-color: var(--connected-color);
+    }
+
+    .toggle-button.disconnected::after {
+        background-color: var(--disconnected-color);
+    }
+
+    @keyframes pulse-indicator {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+    }
+
     .header {
         display: flex;
         justify-content: flex-end;
@@ -207,6 +243,6 @@ export const styles = `
         bottom: -0.1rem;
         width: 100%;
     }
-`
+`;
 
-export default styles
+export default styles;

@@ -1,26 +1,35 @@
+/**
+ * ChatMessage Custom Element
+ *
+ * Renders a chat message bubble with appropriate styles for user or AI messages.
+ * The element listens for changes to the "message" attribute and re-renders its content.
+ */
 class ChatMessage extends HTMLElement {
     constructor() {
-        super()
-        this.attachShadow({ mode: 'open' })
+        super();
+        this.attachShadow({ mode: 'open' });
     }
 
     static get observedAttributes() {
-        return ['message']
+        return ['message'];
     }
 
     connectedCallback() {
-        this.render()
+        this.render();
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (name === 'message' && oldValue !== newValue) {
-            this.render()
+            this.render();
         }
     }
 
+    /**
+     * Renders the chat message using the provided message data.
+     */
     render() {
-        const messageData = JSON.parse(this.getAttribute('message') || '{}')
-        const isUser = messageData.sender === 'user'
+        const messageData = JSON.parse(this.getAttribute('message') || '{}');
+        const isUser = messageData.sender === 'user';
 
         const styles = `
             :host {
@@ -124,7 +133,7 @@ class ChatMessage extends HTMLElement {
                 height: auto;
                 display: block;
             }
-        `
+        `;
 
         this.shadowRoot.innerHTML = `
             <style>${styles}</style>
@@ -148,8 +157,8 @@ class ChatMessage extends HTMLElement {
                     </div>
                 </div>
             </div>
-        `
+        `;
     }
 }
 
-customElements.define('chat-message', ChatMessage)
+customElements.define('chat-message', ChatMessage);
