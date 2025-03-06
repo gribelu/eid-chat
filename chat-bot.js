@@ -15,6 +15,7 @@ import {
   sendMessageToApi,
   onReceiveMessage,
   onCompleteMessage,
+  updateSystemParams,
 } from "./services/api-service.js";
 
 class ChatBot extends HTMLElement {
@@ -26,11 +27,8 @@ class ChatBot extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
 
-    // Initialize configuration from attributes
-    this.config = {
-      serverUrl: this.getAttribute("server-url"),
-      moduleId: this.getAttribute("module-id"),
-    };
+    // Initialize EIDChat global object
+    this.initializeEIDChat();
 
     // Load SignalR script but don't initialize connection yet
     this.loadSignalR();
@@ -115,6 +113,33 @@ class ChatBot extends HTMLElement {
   }
 
   /**
+   * Initialize the EIDChat global object with configuration from attributes
+   */
+  initializeEIDChat() {
+    // Initialize EIDChat object if it doesn't exist
+    if (!window.EIDChat) {
+      window.EIDChat = {};
+    }
+
+    // Initialize SystemParams if it doesn't exist
+    if (!window.EIDChat.SystemParams) {
+      window.EIDChat.SystemParams = {};
+    }
+
+    // Set core configuration from attributes
+    const serverUrl = this.getAttribute("server-url");
+    const moduleId = this.getAttribute("module-id");
+
+    if (serverUrl) {
+      window.EIDChat.serverUrl = serverUrl;
+    }
+
+    if (moduleId) {
+      window.EIDChat.moduleId = moduleId;
+    }
+  }
+
+  /**
    * Handles attribute changes for configuration attributes.
    */
   attributeChangedCallback(name, oldValue, newValue) {
@@ -122,10 +147,10 @@ class ChatBot extends HTMLElement {
 
     switch (name) {
       case "server-url":
-        this.config.serverUrl = newValue;
+        window.EIDChat.serverUrl = newValue;
         break;
       case "module-id":
-        this.config.moduleId = newValue;
+        window.EIDChat.moduleId = newValue;
         break;
     }
   }
@@ -234,30 +259,22 @@ class ChatBot extends HTMLElement {
     this.state.connectionStatus = "connecting";
 
     try {
-      if (!this.config.serverUrl || !this.config.moduleId) {
+      if (!window.EIDChat?.serverUrl || !window.EIDChat?.moduleId) {
         throw new Error(
-          "Missing required configuration: server-url and module-id attributes are required"
+          "Missing required configuration: serverUrl and moduleId are required in window.EIDChat"
         );
       }
 
-      await initializeSignalRConnection(this.config);
+      await initializeSignalRConnection();
       this.state.isConnected = true;
       this.state.connectionStatus = "connected";
     } catch (error) {
       console.error("Connection failed:", error);
       this.state.connectionStatus = "disconnected";
       this.state.connectionInitialized = false; // Allow retry on next toggle
-
-      // Show error message to user
-      const errorMessage = {
-        id: Date.now(),
-        text: "Failed to initialize chat. Please check configuration and try again.",
-        sender: "system",
-        timestamp: new Date(),
-      };
-      this.state.messages.push(errorMessage);
-      this.updateUI();
     }
+
+    this.updateUI();
   }
 
   /**
@@ -423,20 +440,10 @@ class ChatBot extends HTMLElement {
         return;
       }
 
-      // Pass moduleId from attributes
-      await sendMessageToApi(`Context: ${text}`, this.config.moduleId);
+      // Send message to API
+      await sendMessageToApi(`Context: ${text}`);
     } catch (error) {
       console.error("Failed to send inspect message:", error);
-
-      // Show error message to user
-      const errorMessage = {
-        id: Date.now(),
-        text: "Failed to send message. Please try again later.",
-        sender: "system",
-        timestamp: new Date(),
-      };
-      this.state.messages.push(errorMessage);
-      this.updateUI();
     }
   }
 
@@ -456,15 +463,6 @@ class ChatBot extends HTMLElement {
 
     if (!this.state.isConnected) {
       console.error("Not connected to server");
-
-      const errorMessage = {
-        id: Date.now(),
-        text: "Not connected to server. Please try again later.",
-        sender: "system",
-        timestamp: new Date(),
-      };
-      this.state.messages.push(errorMessage);
-      this.updateUI();
       return;
     }
 
@@ -488,7 +486,7 @@ class ChatBot extends HTMLElement {
 
     try {
       // Prefix message sent to the server with "Context:"
-      await sendMessageToApi(`Context: ${rawText}`, this.config.moduleId);
+      await sendMessageToApi(`Context: ${rawText}`);
     } catch (error) {
       console.error("Failed to send message:", error);
       this.state.messages = this.state.messages.filter(
@@ -563,6 +561,19 @@ class ChatBot extends HTMLElement {
       messageElement.setAttribute("message", JSON.stringify(message));
       messagesContainer.appendChild(messageElement);
     });
+  }
+
+  /**
+   * Public method to set system parameters
+   * @param {Object} params - Object containing key-value pairs of system parameters
+   */
+  setSystemParams(params) {
+    if (!params || typeof params !== "object") {
+      console.error("System parameters must be an object");
+      return;
+    }
+
+    updateSystemParams(params);
   }
 }
 

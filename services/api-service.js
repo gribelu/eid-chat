@@ -27,14 +27,41 @@ function dispatchConnectionEvent(eventName) {
   document.dispatchEvent(new CustomEvent(eventName));
 }
 
-export const initializeSignalRConnection = async (config) => {
-  if (!config?.serverUrl) {
-    throw new Error("serverUrl configuration is required");
+// Send system parameters to the server
+async function sendSystemParams() {
+  if (!connection || connection.state !== "Connected") {
+    console.error("Cannot send system params: Connection not established");
+    return;
+  }
+
+  const clientId = generateClientId();
+  const systemParams = window.EIDChat?.SystemParams || {};
+
+  // Send each system parameter individually
+  for (const [key, value] of Object.entries(systemParams)) {
+    try {
+      await connection.invoke(
+        "SendMessageToServer",
+        clientId,
+        `SetContext(${key}=${value})`,
+        "" // Empty string for system messages
+      );
+      console.log(`System parameter sent: ${key}=${value}`);
+    } catch (error) {
+      console.error(`Error sending system parameter ${key}:`, error);
+    }
+  }
+}
+
+export const initializeSignalRConnection = async () => {
+  // Get configuration from window.EIDChat
+  if (!window.EIDChat?.serverUrl) {
+    throw new Error("serverUrl configuration is required in window.EIDChat");
   }
 
   try {
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(config.serverUrl, {
+      .withUrl(window.EIDChat.serverUrl, {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets,
       })
@@ -66,6 +93,8 @@ export const initializeSignalRConnection = async (config) => {
     connection.onreconnected(() => {
       console.log("SignalR reconnected successfully.");
       dispatchConnectionEvent("signalr-connected");
+      // Send system parameters again after reconnection
+      sendSystemParams();
     });
 
     const startConnection = async () => {
@@ -73,6 +102,9 @@ export const initializeSignalRConnection = async (config) => {
         await connection.start();
         console.log("SignalR connected");
         dispatchConnectionEvent("signalr-connected");
+
+        // Send system parameters after initial connection
+        await sendSystemParams();
       } catch (error) {
         console.error("SignalR connection error:", error);
         dispatchConnectionEvent("signalr-disconnected");
@@ -88,10 +120,11 @@ export const initializeSignalRConnection = async (config) => {
   }
 };
 
-export const sendMessageToApi = async (message, moduleId) => {
-  if (!moduleId) {
-    throw new Error("moduleId is required");
+export const sendMessageToApi = async (message) => {
+  if (!window.EIDChat?.moduleId) {
+    throw new Error("moduleId is required in window.EIDChat");
   }
+
   if (connection?.state === "Connected") {
     try {
       const clientId = generateClientId();
@@ -100,7 +133,7 @@ export const sendMessageToApi = async (message, moduleId) => {
         "SendMessageToServer",
         clientId,
         message,
-        moduleId
+        window.EIDChat.moduleId
       );
       console.log("Message sent to AI:", message);
     } catch (error) {
@@ -133,5 +166,29 @@ export const disconnectSignalR = async () => {
       console.error("Error stopping SignalR connection:", error);
       throw error;
     }
+  }
+};
+
+// Function to update system parameters
+export const updateSystemParams = async (newParams) => {
+  // Initialize EIDChat object if it doesn't exist
+  if (!window.EIDChat) {
+    window.EIDChat = {};
+  }
+
+  // Initialize SystemParams if it doesn't exist
+  if (!window.EIDChat.SystemParams) {
+    window.EIDChat.SystemParams = {};
+  }
+
+  // Update the system parameters
+  window.EIDChat.SystemParams = {
+    ...window.EIDChat.SystemParams,
+    ...newParams,
+  };
+
+  // Send the updated parameters to the server if connected
+  if (connection?.state === "Connected") {
+    await sendSystemParams();
   }
 };
