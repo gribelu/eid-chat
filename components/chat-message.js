@@ -45,20 +45,20 @@ class ChatMessage extends HTMLElement {
                 align-items: flex-end;
             }
 
-            .avatar-user {
+            .avatar-user > img {
                 width: 4rem;
                 height: 4rem;
                 border-radius: 50%;
                 background-color: #e0e0e0;
-                margin: 0 0 0 1.2rem;
+                margin: 0 0 -0.5rem 1.2rem;
             }
 
-            .avatar-ai {
+            .avatar-ai > img {
                 width: 4rem;
                 height: 4rem;
                 border-radius: 50%;
-                background-color: #e0e0e0;
-                margin: 0 1.2rem 0 0;
+                background-color: transparent;
+                margin: 0 1.2rem -0.5rem 0;
             }
 
             .message-bubble {
