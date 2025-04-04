@@ -45,12 +45,20 @@ class ChatMessage extends HTMLElement {
                 align-items: flex-end;
             }
 
-            .avatar {
+            .avatar-user {
                 width: 4rem;
                 height: 4rem;
                 border-radius: 50%;
                 background-color: #e0e0e0;
-                margin: ${isUser ? "0 0 0 1.2rem" : "0 1.2rem 0 0"};
+                margin: 0 0 0 1.2rem;
+            }
+
+            .avatar-ai {
+                width: 4rem;
+                height: 4rem;
+                border-radius: 50%;
+                background-color: #e0e0e0;
+                margin: 0 1.2rem 0 0;
             }
 
             .message-bubble {
@@ -138,13 +146,15 @@ class ChatMessage extends HTMLElement {
     this.shadowRoot.innerHTML = `
             <style>${styles}</style>
             <div class="message-container">
-                <img class="avatar"
-                     src="${
-                       isUser
-                         ? "https://gribelu.github.io/eid-chat/img/avatar_user.svg"
-                         : "https://gribelu.github.io/eid-chat/img/avatar_ai.svg"
-                     }"
-                     alt="${isUser ? "User" : "AI"} avatar">
+                ${
+                  isUser
+                    ? `<div class="avatar-user">
+                       <img src="https://gribelu.github.io/eid-chat/img/avatar_user.svg" alt="User avatar">
+                     </div>`
+                    : `<div class="avatar-ai">
+                       <img src="https://gribelu.github.io/eid-chat/img/avatar_ai.svg" alt="AI avatar">
+                     </div>`
+                }
                 <div class="message-bubble ${
                   messageData.placeholder ? "placeholder" : ""
                 }">
