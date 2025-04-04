@@ -171,22 +171,49 @@ export const styles = `
     .toggle-button {
         width: 6.4rem;
         height: 6.4rem;
-        border-radius: 50%;
-        background-color: #fff;
-        border: solid 0.1rem var(--primary-color);
+        // border-radius: 50%;
+        // overflow: hidden;
+        border: none;
+        outline: none;
+        background-color: transparent;
+        // border: solid 0.1rem var(--primary-color);
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: transform var(--transition-duration);
+        will-change: transform;
         position: absolute;
         z-index: 2001;
         bottom: 2.7rem;
         left: 1.6rem;
+        filter: drop-shadow(0px 0px 10px rgba(0,0,0,0.2));
     }
 
-    .toggle-button:hover {
+    .toggle-button__svg-container {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        pointer-events: none;
+        // transform: translate(-50%, -50%);
+        // transform-origin: center;
+    }
+
+    .toggle-button__svg-container > svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .toggle-button:hover, .toggle-button:focus, .toggle-button:active {
         transform: scale(1.1);
+        border: none;
+        outline: none;
     }
 
     /* Connection status indicator */

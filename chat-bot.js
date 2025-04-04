@@ -51,7 +51,62 @@ class ChatBot extends HTMLElement {
             <style>${styles}</style>
             <div class="chat-container">
                 <button class="toggle-button disconnected">
-                    <svg width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Dashboard---My-identity" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g id="My-Identity-Header" transform="translate(-217.000000, -22.000000)" fill="#307FC1"><g id="Group-4"><g id="header"><g id="logo-empowerid" transform="translate(217.000000, 22.000000)"><path d="M10.2857143,7 L13.6387529,7 C16.9030426,7 18.8571429,8.91150333 18.8571429,12.1427955 C18.8571429,15.374211 16.9030426,17.2857143 13.6387529,17.2857143 L10.2857143,17.2857143 L10.2857143,7 Z M13.4432449,19.5176942 C18.5821349,19.5176942 21.5893052,16.7350599 21.5893052,11.9999089 C21.5893052,7.26487932 18.5821349,4.48206279 13.4432449,4.48206279 L8.95497266,4.48206279 C8.05728175,4.48206279 7.51871582,5.02074888 7.51871582,5.91831599 L7.51871582,18.0815017 C7.51871582,18.9791296 8.05728175,19.5176942 8.95497266,19.5176942 L13.4432449,19.5176942 Z M5.82693944,18.2161581 L5.82693944,5.78378118 C5.82693944,4.88615332 5.33321855,4.34758875 4.50285599,4.34758875 C3.65013166,4.34758875 3.15641078,4.88615332 3.15641078,5.78378118 L3.15641078,18.2161581 C3.15641078,19.1138467 3.65013166,19.6524113 4.50285599,19.6524113 C5.33321855,19.6524113 5.82693944,19.1138467 5.82693944,18.2161581 Z M19.1438525,0 C21.8258659,0 24,2.17412858 24,4.85613516 L24,19.1439256 C24,21.8258106 21.8258659,24 19.1438525,24 L4.85608669,24 C2.17413409,24 0,21.8258106 0,19.1439256 L0,4.85613516 C0,2.17412858 2.17413409,0 4.85608669,0 L19.1438525,0 Z" id="Combined-Shape-Copy"></path></g></g></g></g></g></svg>
+                    <div class="toggle-button__svg-container">
+                          <svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                              <title>m/buttons/64/chatbot/normal</title>
+                              <defs>
+                              <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="linearGradient-1">
+                                  <stop stop-color="#019CAE" offset="0%"></stop>
+                                  <stop stop-color="#307FC1" offset="100%"></stop>
+                              </linearGradient>
+                              <circle id="path-2" cx="32" cy="32" r="32"></circle>
+                              <filter x="-76.6%" y="-73.4%" width="253.1%" height="253.1%" filterUnits="objectBoundingBox" id="filter-4">
+                                  <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+                                  <feGaussianBlur stdDeviation="16" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+                                  <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+                                  <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.15 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+                              </filter>
+                              <filter x="-56.2%" y="-53.1%" width="212.5%" height="212.5%" filterUnits="objectBoundingBox" id="filter-5">
+                                  <feGaussianBlur stdDeviation="4" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+                                  <feOffset dx="0" dy="0" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+                                  <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+                                  <feColorMatrix values="0 0 0 0 0.270588235   0 0 0 0 0.247058824   0 0 0 0 0.733333333  0 0 0 1 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+                              </filter>
+                              <filter x="-150.0%" y="-150.0%" width="400.0%" height="400.0%" filterUnits="objectBoundingBox" id="filter-6">
+                                  <feGaussianBlur stdDeviation="8" in="SourceGraphic"></feGaussianBlur>
+                              </filter>
+                              <filter x="-150.0%" y="-150.0%" width="400.0%" height="400.0%" filterUnits="objectBoundingBox" id="filter-7">
+                                  <feGaussianBlur stdDeviation="8" in="SourceGraphic"></feGaussianBlur>
+                              </filter>
+                          </defs>
+                          <g id="m/buttons/64/chatbot/normal" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                              <g id="logo">
+                                  <mask id="mask-3" fill="white">
+                                      <use xlink:href="#path-2"></use>
+                                  </mask>
+                                  <g id="Outline">
+                                      <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-2"></use>
+                                      <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-2"></use>
+                                      <use fill="black" fill-opacity="1" filter="url(#filter-5)" xlink:href="#path-2"></use>
+                                      <circle stroke="#FFFFFF" stroke-width="2" stroke-linejoin="square" cx="32" cy="32" r="31"></circle>
+                                  </g>
+                                  <g id="Orbs-in" mask="url(#mask-3)">
+                                      <g transform="translate(7, 6)">
+                                          <rect id="2" fill="#453FBB" filter="url(#filter-6)" x="41" y="41" width="16" height="16"></rect>
+                                          <rect id="1" fill="#D50393" filter="url(#filter-7)" x="0" y="0" width="16" height="16"></rect>
+                                      </g>
+                                  </g>
+                                  <g id="Logo" mask="url(#mask-3)" fill="#FFFFFF">
+                                      <g transform="translate(14.6719, 15.9477)">
+                                          <path d="M31.9611269,22.9943028 C31.9611269,25.1856339 30.1676675,26.9587534 27.9567223,26.9587534 L23.2581551,26.9587534 L13.7103304,31.6422346 L13.7103304,26.9587534 L8.40653231,26.9587534 C6.19558714,26.9587534 4.4021277,25.1856339 4.4021277,22.9943028 L4.4021277,8.65526883 C4.4021277,6.46638338 6.19558714,4.6908182 8.40653231,4.6908182 L27.9567223,4.6908182 C30.1676675,4.6908182 31.9611269,6.46638338 31.9611269,8.65526883 L31.9611269,22.9943028 Z M27.5417069,0 L8.81907738,0 C3.94758702,0 0,3.91064562 0,8.73353066 L0,22.9111496 C0,27.7340346 3.94758702,31.6422346 8.81907738,31.6422346 L13.7078601,31.6422346 L13.7053897,37.6366013 L22.6578649,31.6422346 L27.5417069,31.6422346 C32.410727,31.6422346 36.3607843,27.7340346 36.3607843,22.9111496 L36.3607843,8.73353066 C36.3607843,3.91064562 32.410727,0 27.5417069,0 L27.5417069,0 Z" id="Fill-1"></path>
+                                          <path d="M10.9449197,8.98130271 C9.94418909,8.98130271 9.29745675,9.65141959 9.29745675,10.6883888 L9.29745675,21.2319687 C9.29745675,22.2689379 9.94418909,22.9390548 10.9449197,22.9390548 C11.9340397,22.9390548 12.5731141,22.2689379 12.5731141,21.2319687 L12.5731141,10.6883888 C12.5731141,9.65141959 11.9340397,8.98130271 10.9449197,8.98130271" id="Fill-3"></path>
+                                          <path d="M23.7344099,16.081558 C23.7344099,18.5428924 22.2853145,19.9545401 19.7584141,19.9545401 L17.3799806,19.9545401 L17.3799806,12.2088204 L19.7584141,12.2088204 C22.2853145,12.2088204 23.7344099,13.6204681 23.7344099,16.081558 M19.5906787,9.09620085 L15.7465985,9.09620085 C14.6996728,9.09620085 14.0228024,9.76607317 14.0228024,10.8027978 L14.0228024,21.1177065 C14.0228024,22.1544311 14.6996728,22.8243034 15.7465985,22.8243034 L19.5906787,22.8243034 C24.2697304,22.8243034 27.0634264,20.2582938 27.0634264,15.9602521 C27.0634264,11.6622105 24.2697304,9.09620085 19.5906787,9.09620085" id="Fill-5"></path>
+                                      </g>
+                                  </g>
+                              </g>
+                          </g>
+                      </svg>
+                    </div>
                 </button>
                 <div class="chat-bot-container">
                     <div class="chat-content">
